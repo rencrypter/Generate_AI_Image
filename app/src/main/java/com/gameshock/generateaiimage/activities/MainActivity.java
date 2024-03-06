@@ -485,10 +485,22 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
                                 new Handler().postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        binding.waitText.setText("Generating...");
-                                        callAPIForGeneratePics(genID);
+                                        binding.waitText.setText("Analysing...");
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            binding.waitText.setText("Generating...");
+
+                                            new Handler().postDelayed(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    callAPIForGeneratePics(genID);
+                                                }
+                                            },13000);
+                                        }
+                                    },5000);
                                     }
-                                }, 20000);
+                                }, 2000);
                             }
                         });
 

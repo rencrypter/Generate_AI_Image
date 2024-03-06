@@ -6,7 +6,8 @@ import android.net.NetworkInfo;
 
 public class Const {
 
-    public static String ak = "c0657ac3-20e8-4e3d-aa49-a76f5121c7e0";
+//    public static String ak = "c0657ac3-20e8-4e3d-aa49-a76f5121c7e0";
+    public static String ak = "dd3d472b-7c76-46da-9e3b-2c666a0d36fa";
     public static String gurl = "https://cloud.leonardo.ai/api/rest/v1/generations";
 
     //

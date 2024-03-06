@@ -47,11 +47,11 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.16.0'
 
     //
-    implementation "com.airbnb.android:lottie:6.2.0"
+    implementation "com.airbnb.android:lottie:6.3.0"
 
     //unity ads
     implementation 'com.unity3d.ads:unity-ads:4.7.0'
-    implementation 'androidx.webkit:webkit:1.9.0'
+    implementation 'androidx.webkit:webkit:1.10.0'
 
     //
     implementation 'com.orhanobut:dialogplus:1.11@aar'
