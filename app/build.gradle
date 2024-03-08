@@ -49,12 +49,12 @@ dependencies {
     //
     implementation "com.airbnb.android:lottie:6.3.0"
 
-    //unity ads
-    implementation 'com.unity3d.ads:unity-ads:4.7.0'
-    implementation 'androidx.webkit:webkit:1.10.0'
 
     //
     implementation 'com.orhanobut:dialogplus:1.11@aar'
 
+
+    //
+    implementation 'com.google.android.gms:play-services-ads:22.6.0'
 
 }

@@ -48,15 +48,17 @@ import com.gameshock.generateaiimage.utils.Const;
 import com.gameshock.generateaiimage.adapter.ImageAdapter;
 import com.gameshock.generateaiimage.databinding.ActivityMainBinding;
 import com.gameshock.generateaiimage.model.GeneratedImage;
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.material.snackbar.Snackbar;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnItemClickListener;
 import com.orhanobut.dialogplus.ViewHolder;
-import com.unity3d.ads.IUnityAdsInitializationListener;
-import com.unity3d.ads.IUnityAdsLoadListener;
-import com.unity3d.ads.IUnityAdsShowListener;
-import com.unity3d.ads.UnityAds;
-import com.unity3d.ads.UnityAdsShowOptions;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -70,7 +72,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity implements IUnityAdsInitializationListener, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     ActivityMainBinding binding;
 
@@ -94,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
 
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 123;
 
+    InterstitialAd mInterstitialAd;
+    AdRequest adRequest;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -103,8 +107,13 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, you can proceed with your operations
                 binding.adLayout.setVisibility(View.VISIBLE);
-                if (loadListenerRewarded != null) {
-                    UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
+//                if (loadListenerRewarded != null) {
+//                    UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
+//                }
+                if (mInterstitialAd != null) {
+                    mInterstitialAd.show(MainActivity.this);
+                } else {
+                    Log.d("TAG", "The interstitial ad wasn't ready yet.");
                 }
             } else {
 
@@ -116,58 +125,58 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
         }
     }
 
-    private IUnityAdsLoadListener loadListenerRewarded = new IUnityAdsLoadListener() {
-        @Override
-        public void onUnityAdsAdLoaded(String placementId) {
-            UnityAds.show(MainActivity.this, adUnitIdRewarded, new UnityAdsShowOptions(), showListenerRewarded);
-        }
-
-        @Override
-        public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
-            Log.e("UnityAdsExample", "Unity Ads failed to load ad for " + placementId + " with error: [" + error + "] " + message);
-            binding.adLayout.setVisibility(View.GONE);
-
-        }
-    };
-
-    private IUnityAdsShowListener showListenerRewarded = new IUnityAdsShowListener() {
-        @Override
-        public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
-            Log.e("UnityAdsExample", "Unity Ads failed to show ad for " + placementId + " with error: [" + error + "] " + message);
-//            Toast.makeText(MainActivity.this, "Ad is failed", Toast.LENGTH_SHORT).show();
-            Snackbar.make(binding.mainLayout, "Ad is failed!", Snackbar.LENGTH_SHORT).show();
-            binding.adLayout.setVisibility(View.GONE);
-
-        }
-
-        @Override
-        public void onUnityAdsShowStart(String placementId) {
-            Log.v("UnityAdsExample", "onUnityAdsShowStart: " + placementId);
-//            Toast.makeText(MainActivity.this, "Ad is starting", Toast.LENGTH_SHORT).show();
-//            Snackbar.make(binding.mainLayout, "Ad is starting!", Snackbar.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onUnityAdsShowClick(String placementId) {
-            Log.v("UnityAdsExample", "onUnityAdsShowClick: " + placementId);
-            binding.adLayout.setVisibility(View.GONE);
-
-        }
-
-        @Override
-        public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
-            Log.v("UnityAdsExample", "onUnityAdsShowComplete: " + placementId);
-            binding.adLayout.setVisibility(View.GONE);
-            if (state.equals(UnityAds.UnityAdsShowCompletionState.COMPLETED)) {
-                // Reward the user for watching the ad to completion
-                binding.loadingLayout.setVisibility(View.VISIBLE);
-                callAPIForGenerateID();
-//                callAPIForGeneratePics("80e46be8-aa32-4863-a758-44c2ac1bff30");
-            } else {
-                // Do not reward the user for skipping the ad
-            }
-        }
-    };
+//    private IUnityAdsLoadListener loadListenerRewarded = new IUnityAdsLoadListener() {
+//        @Override
+//        public void onUnityAdsAdLoaded(String placementId) {
+//            UnityAds.show(MainActivity.this, adUnitIdRewarded, new UnityAdsShowOptions(), showListenerRewarded);
+//        }
+//
+//        @Override
+//        public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
+//            Log.e("UnityAdsExample", "Unity Ads failed to load ad for " + placementId + " with error: [" + error + "] " + message);
+//            binding.adLayout.setVisibility(View.GONE);
+//
+//        }
+//    };
+//
+//    private IUnityAdsShowListener showListenerRewarded = new IUnityAdsShowListener() {
+//        @Override
+//        public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
+//            Log.e("UnityAdsExample", "Unity Ads failed to show ad for " + placementId + " with error: [" + error + "] " + message);
+////            Toast.makeText(MainActivity.this, "Ad is failed", Toast.LENGTH_SHORT).show();
+//            Snackbar.make(binding.mainLayout, "Ad is failed!", Snackbar.LENGTH_SHORT).show();
+//            binding.adLayout.setVisibility(View.GONE);
+//
+//        }
+//
+//        @Override
+//        public void onUnityAdsShowStart(String placementId) {
+//            Log.v("UnityAdsExample", "onUnityAdsShowStart: " + placementId);
+////            Toast.makeText(MainActivity.this, "Ad is starting", Toast.LENGTH_SHORT).show();
+////            Snackbar.make(binding.mainLayout, "Ad is starting!", Snackbar.LENGTH_SHORT).show();
+//        }
+//
+//        @Override
+//        public void onUnityAdsShowClick(String placementId) {
+//            Log.v("UnityAdsExample", "onUnityAdsShowClick: " + placementId);
+//            binding.adLayout.setVisibility(View.GONE);
+//
+//        }
+//
+//        @Override
+//        public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
+//            Log.v("UnityAdsExample", "onUnityAdsShowComplete: " + placementId);
+//            binding.adLayout.setVisibility(View.GONE);
+//            if (state.equals(UnityAds.UnityAdsShowCompletionState.COMPLETED)) {
+//                // Reward the user for watching the ad to completion
+//                binding.loadingLayout.setVisibility(View.VISIBLE);
+//                callAPIForGenerateID();
+////                callAPIForGeneratePics("80e46be8-aa32-4863-a758-44c2ac1bff30");
+//            } else {
+//                // Do not reward the user for skipping the ad
+//            }
+//        }
+//    };
 
     @Override
     protected void onResume() {
@@ -187,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
 
                 }
             }
-        },1000);
+        }, 1000);
 
     }
 
@@ -197,7 +206,12 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        //
+        adRequest = new AdRequest.Builder().build();
+
+
+        //load interstitial
+        loadInterstitialAd();
+
         //backPressed
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -208,8 +222,8 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
             }
         });
         //
-        //Unity Ads init
-        UnityAds.initialize(getApplicationContext(), unityGameID, testMode, this);
+        //Ads init
+
         // Set up the RecyclerView
         binding.rvImgs.setLayoutManager(new LinearLayoutManager(this));
 
@@ -387,8 +401,13 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
                     if (Const.InternetConnection.checkConnection(MainActivity.this)) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                             binding.adLayout.setVisibility(View.VISIBLE);
-                            if (loadListenerRewarded != null) {
-                                UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
+//                            if (loadListenerRewarded != null) {
+//                                UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
+//                            }
+                            if (mInterstitialAd != null) {
+                                mInterstitialAd.show(MainActivity.this);
+                            } else {
+                                Log.d("TAG", "The interstitial ad wasn't ready yet.");
                             }
                         }// Check for runtime permissions on Android 6.0 and higher
                         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -402,16 +421,26 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
                             } else {
                                 // Permission is already granted, you can proceed with your operations
                                 binding.adLayout.setVisibility(View.VISIBLE);
-                                if (loadListenerRewarded != null) {
-                                    UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
+//                                if (loadListenerRewarded != null) {
+//                                    UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
+//                                }
+                                if (mInterstitialAd != null) {
+                                    mInterstitialAd.show(MainActivity.this);
+                                } else {
+                                    Log.d("TAG", "The interstitial ad wasn't ready yet.");
                                 }
                             }
                         } else {
                             // Runtime permissions not required for devices below Android 6.0
                             // You can proceed with your operations
                             binding.adLayout.setVisibility(View.VISIBLE);
-                            if (loadListenerRewarded != null) {
-                                UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
+//                            if (loadListenerRewarded != null) {
+//                                UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
+//                            }
+                            if (mInterstitialAd != null) {
+                                mInterstitialAd.show(MainActivity.this);
+                            } else {
+                                Log.d("TAG", "The interstitial ad wasn't ready yet.");
                             }
                         }
 
@@ -419,6 +448,76 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
                         Snackbar.make(binding.mainLayout, "Check your internet connection", Snackbar.LENGTH_SHORT).show();
                     }
                 }
+            }
+        });
+    }
+
+    private void loadInterstitialAd() {
+        AdRequest adRequest = new AdRequest.Builder().build();
+        InterstitialAd.load(this, getString(R.string.interstitial_ad_unit_id), adRequest, new InterstitialAdLoadCallback() {
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                Log.d("TAG", loadAdError.toString());
+                mInterstitialAd = null;
+                binding.adLayout.setVisibility(View.GONE);
+
+                Snackbar.make(binding.mainLayout, "Ad is not available now, try again!", 1200).show();
+
+                loadInterstitialAd();
+            }
+
+            @Override
+            public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                super.onAdLoaded(interstitialAd);
+                mInterstitialAd = interstitialAd;
+                Log.i("TAG", "onAdLoaded");
+                binding.adLayout.setVisibility(View.GONE);
+                mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                    @Override
+                    public void onAdClicked() {
+                        // Called when a click is recorded for an ad.
+                        Log.d("TAG", "Ad was clicked.");
+                        binding.adLayout.setVisibility(View.GONE);
+
+                    }
+
+                    @Override
+                    public void onAdDismissedFullScreenContent() {
+                        // Called when ad is dismissed.
+                        // Set the ad reference to null so you don't show the ad a second time.
+                        Log.d("TAG", "Ad dismissed fullscreen content.");
+                        mInterstitialAd = null;
+                        binding.adLayout.setVisibility(View.GONE);
+                        loadInterstitialAd();
+                        callAPIForGenerateID();
+
+                    }
+
+                    @Override
+                    public void onAdFailedToShowFullScreenContent(AdError adError) {
+                        // Called when ad fails to show.
+                        Log.e("TAG", "Ad failed to show fullscreen content.");
+                        mInterstitialAd = null;
+                        loadInterstitialAd();
+                        binding.adLayout.setVisibility(View.GONE);
+
+                    }
+
+                    @Override
+                    public void onAdImpression() {
+                        // Called when an impression is recorded for an ad.
+                        Log.d("TAG", "Ad recorded an impression.");
+                    }
+
+                    @Override
+                    public void onAdShowedFullScreenContent() {
+                        // Called when ad is shown.
+                        Log.d("TAG", "Ad showed fullscreen content.");
+                        binding.adLayout.setVisibility(View.GONE);
+
+                    }
+                });
+                loadInterstitialAd();
             }
         });
     }
@@ -486,19 +585,19 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
                                     @Override
                                     public void run() {
                                         binding.waitText.setText("Analysing...");
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            binding.waitText.setText("Generating...");
+                                        new Handler().postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                binding.waitText.setText("Generating...");
 
-                                            new Handler().postDelayed(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    callAPIForGeneratePics(genID);
-                                                }
-                                            },13000);
-                                        }
-                                    },5000);
+                                                new Handler().postDelayed(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        callAPIForGeneratePics(genID);
+                                                    }
+                                                }, 13000);
+                                            }
+                                        }, 5000);
                                     }
                                 }, 2000);
                             }
@@ -555,7 +654,7 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
 
                 @Override
                 public void retry(VolleyError error) throws VolleyError {
-                    Log.d("TAGr", "retry: "+error.getMessage());
+                    Log.d("TAGr", "retry: " + error.getMessage());
                     binding.loadingLayout.setVisibility(View.GONE);
                     binding.waitText.setText("Please wait...");
                 }
@@ -578,7 +677,7 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
         if (errorMessage != null && errorMessage.contains("content moderation filter")) {
             // Handle the specific error message
             Snackbar.make(binding.mainLayout, "Content moderation filter", Snackbar.LENGTH_SHORT).show();
-        }else{
+        } else {
             Snackbar.make(binding.mainLayout, "Error: status code 400", Snackbar.LENGTH_SHORT).show();
         }
     }
@@ -610,7 +709,7 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
 
                 // Parsing json
                 try {
-                    Log.d("TAGrrr", "onResponse: "+response.toString());
+                    Log.d("TAGrrr", "onResponse: " + response.toString());
                     JSONObject generationsByPk = response.getJSONObject("generations_by_pk");
                     JSONArray generatedImages = generationsByPk.getJSONArray("generated_images");
 
@@ -658,15 +757,6 @@ public class MainActivity extends AppCompatActivity implements IUnityAdsInitiali
 
     }
 
-    @Override
-    public void onInitializationComplete() {
-
-    }
-
-    @Override
-    public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {
-        Log.d("TAGUnity", "onInitializationFailed: " + error.toString());
-    }
 
     ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),

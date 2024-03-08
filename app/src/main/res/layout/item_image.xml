@@ -6,7 +6,7 @@
     android:layout_margin="10dp"
     android:orientation="vertical"
     app:cardBackgroundColor="@color/white"
-    app:cardCornerRadius="6dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
     <LinearLayout
@@ -28,7 +28,8 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="0.6"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal">
 
             <LinearLayout

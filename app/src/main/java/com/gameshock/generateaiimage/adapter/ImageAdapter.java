@@ -93,7 +93,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                 fileOutputStream.close();
 
 
-                Snackbar.make(dBtn, "Downloaded", 1000).show();
+                Snackbar.make(dBtn, "Image save to /downloads directory ", 1000).show();
 //                Toast.makeText(context, "Downloaded", Toast.LENGTH_SHORT).show();
 
             } catch (Exception e) {
