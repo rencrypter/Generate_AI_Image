@@ -1,5 +1,6 @@
 package com.gameshock.generateaiimage.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Environment;
@@ -18,6 +19,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.gameshock.generateaiimage.R;
 import com.gameshock.generateaiimage.model.GeneratedImage;
+import com.gameshock.generateaiimage.utils.ApplicationClass;
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
@@ -30,9 +34,9 @@ import java.util.Locale;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
 
     private List<GeneratedImage> generatedImages;
-    private Context context;
+    private Activity context;
 
-    public ImageAdapter(Context context, List<GeneratedImage> generatedImages) {
+    public ImageAdapter(Activity context, List<GeneratedImage> generatedImages) {
         this.context = context;
         this.generatedImages = generatedImages;
     }
@@ -41,6 +45,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     @Override
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_image, parent, false);
+        ApplicationClass.loadInterstitialAd(context);
         return new ImageViewHolder(view);
     }
 
@@ -48,7 +53,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public void onBindViewHolder(@NonNull ImageViewHolder holder, int position) {
         GeneratedImage generatedImage = generatedImages.get(position);
 
-        Log.d("TAGrrr", "onBindViewHolder: "+generatedImages.get(position));
+        Log.d("TAGrrr", "onBindViewHolder: " + generatedImages.get(position));
         // Load image using Glide or your preferred image loading library
         Glide.with(context)
                 .load(generatedImage.getImageUrl())
@@ -57,12 +62,62 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         holder.dBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                holder.imageView.setDrawingCacheEnabled(true);
-                holder.imageView.buildDrawingCache();
-                holder.imageView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
-                Bitmap bitmap = holder.imageView.getDrawingCache();
-                saveImage(bitmap, holder.dBtn);
-                holder.imageView.setDrawingCacheEnabled(false);
+                if (ApplicationClass.mInterstitialAd != null) {
+
+                    ApplicationClass.mInterstitialAd.show(context);
+                    ApplicationClass.mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                        @Override
+                        public void onAdClicked() {
+                            // Called when a click is recorded for an ad.
+//                Log.d("TAGAd", "Ad was clicked.");
+                        }
+
+                        @Override
+                        public void onAdDismissedFullScreenContent() {
+
+                            // Called when ad is dismissed.
+                            // Set the ad reference to null so you don't show the ad a second time.
+//                Log.d("TAGAd", "Ad dismissed fullscreen content.");
+
+
+                            ApplicationClass.mInterstitialAd = null;
+                            //Image Saving
+                            holder.imageView.setDrawingCacheEnabled(true);
+                            holder.imageView.buildDrawingCache();
+                            holder.imageView.setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_HIGH);
+                            Bitmap bitmap = holder.imageView.getDrawingCache();
+                            saveImage(bitmap, holder.dBtn);
+                            holder.imageView.setDrawingCacheEnabled(false);
+                            //Load the ad Again
+                            ApplicationClass.loadInterstitialAd(context);
+
+                        }
+
+                        @Override
+                        public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                            // Called when ad fails to show.
+                            ApplicationClass.mInterstitialAd = null;
+                            Snackbar.make(holder.dBtn, "Ad is not available, try again!", 1200).show();
+                            ApplicationClass.loadInterstitialAd(context);
+                        }
+
+                        @Override
+                        public void onAdImpression() {
+                            // Called when an impression is recorded for an ad.
+//                Log.d("TAGAd", "Ad recorded an impression.");
+
+                        }
+
+                        @Override
+                        public void onAdShowedFullScreenContent() {
+                            // Called when ad is shown.
+//                Log.d("TAGAd", "Ad showed fullscreen content.");
+                        }
+                    });
+
+                }
+
+
             }
         });
     }

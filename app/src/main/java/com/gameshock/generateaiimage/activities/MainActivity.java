@@ -44,6 +44,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.gameshock.generateaiimage.R;
+import com.gameshock.generateaiimage.utils.ApplicationClass;
 import com.gameshock.generateaiimage.utils.Const;
 import com.gameshock.generateaiimage.adapter.ImageAdapter;
 import com.gameshock.generateaiimage.databinding.ActivityMainBinding;
@@ -52,8 +53,13 @@ import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.OnUserEarnedRewardListener;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.rewarded.RewardItem;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import com.google.android.gms.ads.rewarded.ServerSideVerificationOptions;
 import com.google.android.material.snackbar.Snackbar;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnItemClickListener;
@@ -99,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     InterstitialAd mInterstitialAd;
     AdRequest adRequest;
 
+    public static RewardedAd mRewardedAd;
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -110,11 +118,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                if (loadListenerRewarded != null) {
 //                    UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
 //                }
-                if (mInterstitialAd != null) {
-                    mInterstitialAd.show(MainActivity.this);
-                } else {
-                    Log.d("TAG", "The interstitial ad wasn't ready yet.");
-                }
+                ShowRewardedAdandGenerateResponse();
+
             } else {
 
                 // Permission denied, handle this situation (e.g., show a message or request again)
@@ -125,58 +130,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-//    private IUnityAdsLoadListener loadListenerRewarded = new IUnityAdsLoadListener() {
-//        @Override
-//        public void onUnityAdsAdLoaded(String placementId) {
-//            UnityAds.show(MainActivity.this, adUnitIdRewarded, new UnityAdsShowOptions(), showListenerRewarded);
-//        }
-//
-//        @Override
-//        public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
-//            Log.e("UnityAdsExample", "Unity Ads failed to load ad for " + placementId + " with error: [" + error + "] " + message);
-//            binding.adLayout.setVisibility(View.GONE);
-//
-//        }
-//    };
-//
-//    private IUnityAdsShowListener showListenerRewarded = new IUnityAdsShowListener() {
-//        @Override
-//        public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
-//            Log.e("UnityAdsExample", "Unity Ads failed to show ad for " + placementId + " with error: [" + error + "] " + message);
-////            Toast.makeText(MainActivity.this, "Ad is failed", Toast.LENGTH_SHORT).show();
-//            Snackbar.make(binding.mainLayout, "Ad is failed!", Snackbar.LENGTH_SHORT).show();
-//            binding.adLayout.setVisibility(View.GONE);
-//
-//        }
-//
-//        @Override
-//        public void onUnityAdsShowStart(String placementId) {
-//            Log.v("UnityAdsExample", "onUnityAdsShowStart: " + placementId);
-////            Toast.makeText(MainActivity.this, "Ad is starting", Toast.LENGTH_SHORT).show();
-////            Snackbar.make(binding.mainLayout, "Ad is starting!", Snackbar.LENGTH_SHORT).show();
-//        }
-//
-//        @Override
-//        public void onUnityAdsShowClick(String placementId) {
-//            Log.v("UnityAdsExample", "onUnityAdsShowClick: " + placementId);
-//            binding.adLayout.setVisibility(View.GONE);
-//
-//        }
-//
-//        @Override
-//        public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
-//            Log.v("UnityAdsExample", "onUnityAdsShowComplete: " + placementId);
-//            binding.adLayout.setVisibility(View.GONE);
-//            if (state.equals(UnityAds.UnityAdsShowCompletionState.COMPLETED)) {
-//                // Reward the user for watching the ad to completion
-//                binding.loadingLayout.setVisibility(View.VISIBLE);
-//                callAPIForGenerateID();
-////                callAPIForGeneratePics("80e46be8-aa32-4863-a758-44c2ac1bff30");
-//            } else {
-//                // Do not reward the user for skipping the ad
-//            }
-//        }
-//    };
+    private void ShowRewardedAdandGenerateResponse() {
+        if (mRewardedAd != null) {
+            mRewardedAd.show(this, new OnUserEarnedRewardListener() {
+                @Override
+                public void onUserEarnedReward(@NonNull RewardItem rewardItem) {
+                    // Handle the reward.
+//                    Log.d("TAGr", "The user earned the reward.");
+
+                    binding.adLayout.setVisibility(View.GONE);
+                    binding.loadingLayout.setVisibility(View.VISIBLE);
+
+                    callAPIForGenerateID();
+
+
+                    if (ApplicationClass.mRewardedAd == null) {
+                        loadAd();
+                    }
+                }
+            });
+        } else {
+            Snackbar.make(binding.mainLayout, "Ad is not available now, try again!", 1500).show();
+            binding.adLayout.setVisibility(View.GONE);
+            loadAd();
+        }
+    }
+
 
     @Override
     protected void onResume() {
@@ -210,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
         //load interstitial
-        loadInterstitialAd();
+        loadAd();
 
         //backPressed
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -404,11 +383,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                            if (loadListenerRewarded != null) {
 //                                UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
 //                            }
-                            if (mInterstitialAd != null) {
-                                mInterstitialAd.show(MainActivity.this);
-                            } else {
-                                Log.d("TAG", "The interstitial ad wasn't ready yet.");
-                            }
+                            ShowRewardedAdandGenerateResponse();
+
                         }// Check for runtime permissions on Android 6.0 and higher
                         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                             // Check if the permission is not granted
@@ -424,11 +400,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                                if (loadListenerRewarded != null) {
 //                                    UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
 //                                }
-                                if (mInterstitialAd != null) {
-                                    mInterstitialAd.show(MainActivity.this);
-                                } else {
-                                    Log.d("TAG", "The interstitial ad wasn't ready yet.");
-                                }
+                                ShowRewardedAdandGenerateResponse();
+
                             }
                         } else {
                             // Runtime permissions not required for devices below Android 6.0
@@ -437,11 +410,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                            if (loadListenerRewarded != null) {
 //                                UnityAds.load(adUnitIdRewarded, loadListenerRewarded);
 //                            }
-                            if (mInterstitialAd != null) {
-                                mInterstitialAd.show(MainActivity.this);
-                            } else {
-                                Log.d("TAG", "The interstitial ad wasn't ready yet.");
-                            }
+                            ShowRewardedAdandGenerateResponse();
+
                         }
 
                     } else {
@@ -452,75 +422,79 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-    private void loadInterstitialAd() {
+    //Rewarded Ad
+    public void loadAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
-        InterstitialAd.load(this, getString(R.string.interstitial_ad_unit_id), adRequest, new InterstitialAdLoadCallback() {
-            @Override
-            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                Log.d("TAG", loadAdError.toString());
-                mInterstitialAd = null;
-                binding.adLayout.setVisibility(View.GONE);
-
-                Snackbar.make(binding.mainLayout, "Ad is not available now, try again!", 1200).show();
-
-                loadInterstitialAd();
-            }
-
-            @Override
-            public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
-                super.onAdLoaded(interstitialAd);
-                mInterstitialAd = interstitialAd;
-                Log.i("TAG", "onAdLoaded");
-                binding.adLayout.setVisibility(View.GONE);
-                mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+        RewardedAd.load(this, getString(R.string.rrd),
+                adRequest, new RewardedAdLoadCallback() {
                     @Override
-                    public void onAdClicked() {
-                        // Called when a click is recorded for an ad.
-                        Log.d("TAG", "Ad was clicked.");
+                    public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                        // Handle the error.
+                        Log.d("TAGr", loadAdError.toString());
                         binding.adLayout.setVisibility(View.GONE);
 
+                        Snackbar.make(binding.mainLayout, "Ad is not available now, try again!", 1200).show();
+
+                        mRewardedAd = null;
+                        loadAd();
                     }
 
                     @Override
-                    public void onAdDismissedFullScreenContent() {
-                        // Called when ad is dismissed.
-                        // Set the ad reference to null so you don't show the ad a second time.
-                        Log.d("TAG", "Ad dismissed fullscreen content.");
-                        mInterstitialAd = null;
-                        binding.adLayout.setVisibility(View.GONE);
-                        loadInterstitialAd();
-                        callAPIForGenerateID();
+                    public void onAdLoaded(@NonNull RewardedAd rewardedAd) {
+                        mRewardedAd = rewardedAd;
+//                        Log.d("TAGr", "Ad was loaded.");
 
-                    }
+                        ServerSideVerificationOptions options = new ServerSideVerificationOptions
+                                .Builder()
+                                .setCustomData("SAMPLE_CUSTOM_DATA_STRING")
+                                .build();
+                        rewardedAd.setServerSideVerificationOptions(options);
 
-                    @Override
-                    public void onAdFailedToShowFullScreenContent(AdError adError) {
-                        // Called when ad fails to show.
-                        Log.e("TAG", "Ad failed to show fullscreen content.");
-                        mInterstitialAd = null;
-                        loadInterstitialAd();
                         binding.adLayout.setVisibility(View.GONE);
 
-                    }
+                        mRewardedAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                            @Override
+                            public void onAdClicked() {
+                                // Called when a click is recorded for an ad.
+//                                Log.d("TAGr", "Ad was clicked.");
+                            }
 
-                    @Override
-                    public void onAdImpression() {
-                        // Called when an impression is recorded for an ad.
-                        Log.d("TAG", "Ad recorded an impression.");
-                    }
+                            @Override
+                            public void onAdDismissedFullScreenContent() {
+                                // Called when ad is dismissed.
+                                // Set the ad reference to null so you don't show the ad a second time.
+//                                Log.d("TAGr", "Ad dismissed fullscreen content.");
+                                mRewardedAd = null;
+                                loadAd();
+                            }
 
-                    @Override
-                    public void onAdShowedFullScreenContent() {
-                        // Called when ad is shown.
-                        Log.d("TAG", "Ad showed fullscreen content.");
-                        binding.adLayout.setVisibility(View.GONE);
+                            @Override
+                            public void onAdFailedToShowFullScreenContent(AdError adError) {
+                                // Called when ad fails to show.
+                                Log.e("TAGr", "Ad failed to show fullscreen content." + adError.toString());
+                                mRewardedAd = null;
+                                loadAd();
+                            }
+
+                            @Override
+                            public void onAdImpression() {
+                                // Called when an impression is recorded for an ad.
+//                                Log.d("TAGr", "Ad recorded an impression.");
+                            }
+
+                            @Override
+                            public void onAdShowedFullScreenContent() {
+                                // Called when ad is shown.
+//                                Log.d("TAGr", "Ad showed fullscreen content.");
+
+
+                            }
+                        });
 
                     }
                 });
-                loadInterstitialAd();
-            }
-        });
     }
+
 
     private void exitPopup() {
         final DialogPlus dialogPlus = DialogPlus.newDialog(MainActivity.this)
