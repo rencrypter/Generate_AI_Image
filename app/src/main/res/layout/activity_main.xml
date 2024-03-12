@@ -164,8 +164,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_centerInParent="true"
-                                android:backgroundTint="@color/white"
-                                />
+                                android:backgroundTint="@color/white" />
                         </com.google.android.material.card.MaterialCardView>
 
                     </RelativeLayout>
@@ -190,8 +189,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_centerInParent="true"
-                                android:backgroundTint="@color/white"
-                                 />
+                                android:backgroundTint="@color/white" />
                         </com.google.android.material.card.MaterialCardView>
 
                     </RelativeLayout>
@@ -448,8 +446,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/bg"
-        android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:orientation="vertical">
 
         <com.google.android.material.card.MaterialCardView
             style="@style/mainScreenBgCardView"
@@ -499,6 +497,23 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <LinearLayout
+                android:id="@+id/ad_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+                    android:id="@+id/adView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    ads:adSize="BANNER"
+                    ads:adUnitId="@string/bbd" />
+
+            </LinearLayout>
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -553,8 +568,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/bg_trans"
-        android:visibility="gone"
-       >
+        android:visibility="gone">
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -585,9 +599,9 @@
 
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:lottie_autoPlay="true"
-                    android:layout_marginTop="10dp"
                     android:layout_marginHorizontal="10dp"
+                    android:layout_marginTop="10dp"
+                    app:lottie_autoPlay="true"
                     app:lottie_loop="true"
                     app:lottie_rawRes="@raw/loadinganim3" />
             </LinearLayout>

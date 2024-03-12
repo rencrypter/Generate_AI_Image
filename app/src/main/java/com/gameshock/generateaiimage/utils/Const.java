@@ -15,6 +15,10 @@ public class Const {
     public static String unityGameID = "5483168";
     public static Boolean testMode = true;
 
+    //
+    public static Boolean isResultBack = false;
+    public static Boolean isGeneratePicButton = false;
+
     //internet permission
     public static class InternetConnection {
 

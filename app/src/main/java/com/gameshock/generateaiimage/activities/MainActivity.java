@@ -1,6 +1,8 @@
 package com.gameshock.generateaiimage.activities;
 
 import static com.gameshock.generateaiimage.utils.Const.adUnitIdRewarded;
+import static com.gameshock.generateaiimage.utils.Const.isGeneratePicButton;
+import static com.gameshock.generateaiimage.utils.Const.isResultBack;
 import static com.gameshock.generateaiimage.utils.Const.testMode;
 import static com.gameshock.generateaiimage.utils.Const.unityGameID;
 
@@ -102,10 +104,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 123;
 
-    InterstitialAd mInterstitialAd;
     AdRequest adRequest;
 
     public static RewardedAd mRewardedAd;
+    public static InterstitialAd mInterstitialAd;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -150,9 +152,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             });
         } else {
-            Snackbar.make(binding.mainLayout, "Ad is not available now, try again!", 1500).show();
             binding.adLayout.setVisibility(View.GONE);
             loadAd();
+            isGeneratePicButton = true;
+            showAdOnBackResultBtn();
         }
     }
 
@@ -187,8 +190,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         adRequest = new AdRequest.Builder().build();
 
+        //abmob
+        if (ApplicationClass.InternetConnection.checkConnection(this)) {
+            binding.adLayout.setVisibility(View.VISIBLE);
+            AdRequest adRequest = new AdRequest.Builder().build();
+            binding.adView.loadAd(adRequest);
+        } else {
+            binding.adLayout.setVisibility(View.GONE);
+
+        }
 
         //load interstitial
+        loadInterstitialAd();
         loadAd();
 
         //backPressed
@@ -301,7 +314,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         binding.icBackResult.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                binding.resultScreen.setVisibility(View.GONE);
+                Const.isResultBack = true;
+                showAdOnBackResultBtn();
             }
         });
         //cls
@@ -418,6 +432,86 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Snackbar.make(binding.mainLayout, "Check your internet connection", Snackbar.LENGTH_SHORT).show();
                     }
                 }
+            }
+        });
+    }
+
+    private void loadInterstitialAd() {
+
+
+        AdRequest adRequest = new AdRequest.Builder().build();
+        InterstitialAd.load(this, getString(R.string.iid), adRequest, new InterstitialAdLoadCallback() {
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+//                Log.d("TAGAd", loadAdError.toString());
+                mInterstitialAd = null;
+
+            }
+
+            @Override
+            public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                super.onAdLoaded(interstitialAd);
+                mInterstitialAd = interstitialAd;
+//                Log.i("TAGAd", "onAdLoaded");
+            }
+        });
+    }
+
+
+    private void showAdOnBackResultBtn() {
+
+        mInterstitialAd.show(this);
+        mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+            @Override
+            public void onAdClicked() {
+                // Called when a click is recorded for an ad.
+//                Log.d("TAGAd", "Ad was clicked.");
+            }
+
+            @Override
+            public void onAdDismissedFullScreenContent() {
+
+                if (isResultBack) {
+                    binding.resultScreen.setVisibility(View.GONE);
+                    isResultBack = false;
+                }
+                if (isGeneratePicButton) {
+                    binding.adLayout.setVisibility(View.GONE);
+                    binding.loadingLayout.setVisibility(View.VISIBLE);
+
+                    callAPIForGenerateID();
+                    isGeneratePicButton = false;
+                }
+
+                mInterstitialAd = null;
+
+                loadInterstitialAd();
+
+            }
+
+            @Override
+            public void onAdFailedToShowFullScreenContent(@NonNull AdError adError) {
+                // Called when ad fails to show.
+//                Log.e("TAGAd", "Ad failed to show fullscreen content.");
+                mInterstitialAd = null;
+                isResultBack = false;
+                isGeneratePicButton = false;
+                Snackbar.make(binding.mainLayout, "Ad is not available now, try again!", 1500).show();
+
+                loadInterstitialAd();
+            }
+
+            @Override
+            public void onAdImpression() {
+                // Called when an impression is recorded for an ad.
+//                Log.d("TAGAd", "Ad recorded an impression.");
+
+            }
+
+            @Override
+            public void onAdShowedFullScreenContent() {
+                // Called when ad is shown.
+//                Log.d("TAGAd", "Ad showed fullscreen content.");
             }
         });
     }
